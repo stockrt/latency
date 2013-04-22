@@ -55,7 +55,7 @@ def subscriber(domain, port)
           send_timestamp = match_data ? match_data[:ts].to_f : nil
           unless send_timestamp.nil?
             latency = recv_timestamp - send_timestamp
-            puts "Latency: #{latency}s"
+            puts "Latency: #{latency}"
           end
         end
       end
