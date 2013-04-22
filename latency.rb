@@ -5,7 +5,6 @@
 ## REQUIRES ##
 ##############
 
-require 'colorize'
 require 'net/http'
 
 ##########
@@ -50,10 +49,11 @@ def subscriber(domain, port)
     http.request_get(URI.escape('/sub/latency')) do |response|
       response.read_body do |stream|
         buffer += stream
+        recv_timestamp = Time.now
         while line = buffer.slice!(/.+\r\n/)
           timestamp = line.start_with?('TS:') ? line.split(':')[1].to_i : nil
           unless timestamp.nil?
-            latency = Time.now - Time.at(timestamp)
+            latency = recv_timestamp - Time.at(timestamp)
             puts "Latency: #{latency}s"
           end
         end
