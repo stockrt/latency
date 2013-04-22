@@ -34,8 +34,8 @@ def publisher(domain, port)
   buffer = ''
   Net::HTTP.start(domain, port) do |http|
     loop do
-      timestamp = Time.now.strftime('%s.%L')
-      message = "TS:#{timestamp}:"
+      send_timestamp = Time.now.strftime('%s.%L')
+      message = "TS:#{send_timestamp}:"
       http.request_post(URI.escape('/pub?id=latency'), message) do |response|
         puts response.read_body
       end
@@ -49,11 +49,11 @@ def subscriber(domain, port)
     http.request_get(URI.escape('/sub/latency')) do |response|
       response.read_body do |stream|
         buffer += stream
-        recv_timestamp = Time.now
         while line = buffer.slice!(/.+\r\n/)
-          timestamp = line.start_with?('TS:') ? line.split(':')[1].to_i : nil
-          unless timestamp.nil?
-            latency = recv_timestamp - Time.at(timestamp)
+          send_timestamp = line.start_with?('TS:') ? line.split(':')[1].to_f : nil
+          recv_timestamp = Time.now.to_f
+          unless send_timestamp.nil?
+            latency = recv_timestamp - send_timestamp
             puts "Latency: #{latency}s"
           end
         end
