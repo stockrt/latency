@@ -48,10 +48,11 @@ def subscriber(domain, port)
   Net::HTTP.start(domain, port) do |http|
     http.request_get(URI.escape('/sub/latency')) do |response|
       response.read_body do |stream|
+        recv_timestamp = Time.now.to_f
         buffer += stream
         while line = buffer.slice!(/.+\r\n/)
-          send_timestamp = line.start_with?('TS:') ? line.split(':')[1].to_f : nil
-          recv_timestamp = Time.now.to_f
+          match_data = /TS:(?<ts>\d+\.\d+):/.match(line)
+          send_timestamp = match_data ? match_data[:ts].to_f : nil
           unless send_timestamp.nil?
             latency = recv_timestamp - send_timestamp
             puts "Latency: #{latency}s"
