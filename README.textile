@@ -1,0 +1,12 @@
+h2. Nginx Push Stream latency test tool
+
+Nanosecond resolution tool for testing pub/sub delay in "nginxpushstream":https://github.com/wandenberg/nginx-push-stream-module module.
+
+h2. Using
+
+<pre>
+<code>
+    ./latency.rb
+    Usage: ./latency.rb <domain> <port> <mode>
+</code>
+</pre>
