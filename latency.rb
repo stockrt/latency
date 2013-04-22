@@ -14,16 +14,21 @@ require 'net/http'
 
 def main
   # Usage.
-  abort "#{$0} <channels>" if ARGV.size != 1
+  abort "#{$0} <domain> <port>" if ARGV.size != 2
 
   # Params.
-  channels = ARGV[0].to_i
+  domain = ARGV[0]
+  port = ARGV[1].to_i
 
-  # Loop.
-  Net::HTTP.start('localhost', port=9080) do |http|
-    http.request_get(URI.escape('/sub/channel')) do |response|
+  # Subscriber loop.
+  Net::HTTP.start(domain, port) do |http|
+    http.request_get(URI.escape('/sub/latency')) do |response|
       response.read_body do |stream|
-        puts stream
+        timestamp = stream.start_with?('TS:') ? stream.split(':')[1].to_i : nil
+        unless timestamp.nil?
+          latency = Time.now - Time.at(timestamp)
+          puts "Latency: #{latency}s"
+        end
       end
     end
   end
