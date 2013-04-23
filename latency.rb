@@ -78,8 +78,13 @@ def subscriber(opts, domain, port)
           send_timestamp = match_data ? match_data[:ts].to_f : nil
           unless send_timestamp.nil?
             latency = recv_timestamp - send_timestamp
-            color = latency > opts[:max] ? light_red : light_green
-            puts "Latency: #{latency}".color
+            # Max latency.
+            if latency > opts[:max]
+              puts "Latency: #{latency}".light_red
+            else
+              puts "Latency: #{latency}".light_green
+            end
+            # Write outfile.
             File.open(opts[:outfile], 'wt').write("#{latency}\n") if opts[:outfile]
           end
         end
