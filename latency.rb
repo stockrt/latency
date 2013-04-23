@@ -106,7 +106,7 @@ def subscriber(opts, uri)
               puts "Latency: #{latency}".light_green
             end
             # Write outfile.
-            if opts[:outfile]
+            if opts.outfile?
               puts "[Subscriber] Writing last timestamp to outfile: #{opts[:outfile]}".light_cyan if opts[:verbose] > 2
               File.open(opts[:outfile], 'wt').write("#{latency}\n")
             end
