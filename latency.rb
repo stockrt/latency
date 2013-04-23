@@ -34,10 +34,12 @@ def main(opts)
   # Parse.
   uri = URI(url)
 
+  # Pub.
   Process.fork do
     publisher(opts, uri.host, uri.port)
   end
 
+  # Sub.
   Process.fork do
     subscriber(opts, uri.host, uri.port)
   end
@@ -45,6 +47,7 @@ def main(opts)
   Process.wait
 end
 
+# Pub.
 def publisher(opts, domain, port)
   buffer = ''
   Net::HTTP.start(domain, port) do |http|
@@ -59,6 +62,7 @@ def publisher(opts, domain, port)
   end
 end
 
+# Sub.
 def subscriber(opts, domain, port)
   buffer = ''
   Net::HTTP.start(domain, port) do |http|
@@ -66,8 +70,10 @@ def subscriber(opts, domain, port)
       response.read_body do |stream|
         recv_timestamp = Time.now.to_f
         buffer += stream
+        # Compose line.
         while line = buffer.slice!(/.+\r\n/)
           puts line if opts[:verbose] > 1
+          # Parse sent timestamp.
           match_data = /TS:(?<ts>\d+\.\d+):/.match(line)
           send_timestamp = match_data ? match_data[:ts].to_f : nil
           unless send_timestamp.nil?
