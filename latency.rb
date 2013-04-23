@@ -34,6 +34,21 @@ def main(opts)
   # Parse.
   uri = URI(url)
 
+  # Splash.
+  puts "
+  URL:          #{url}
+  Host:         #{uri.host}
+  Port:         #{uri.port}
+  Channel:      #{opts[:channel]}
+  Pubdelay:     #{opts[:pubdelay]} seconds
+  Outfile:      #{opts[:outfile]}
+  Pub URI:      #{opts[:pub]}
+  Sub URI:      #{opts[:sub]}
+  Max latency:  #{opts[:max]} seconds
+  Verbosity:    #{opts[:verbose]}
+".light_cyan
+  sleep 3
+
   # Pub.
   Process.fork do
     publisher(opts, uri.host, uri.port)
