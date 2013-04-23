@@ -57,7 +57,7 @@ def publisher(opts, domain, port)
       http.request_post(URI.escape("#{opts[:pub]}?id=#{opts[:channel]}"), message) do |response|
         puts response.read_body if opts[:verbose] > 0
       end
-      sleep opt[:pubdelay] unless opt[:pubdelay] == 0
+      sleep opts[:pubdelay] unless opts[:pubdelay] == 0
     end
   end
 end
