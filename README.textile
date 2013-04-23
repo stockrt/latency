@@ -6,7 +6,25 @@ h2. Using
 
 <pre>
 <code>
-    ./latency.rb
-    Usage: ./latency.rb <domain> <port> <mode>
+Usage:
+
+    latency.rb url [options]
+
+Examples:
+
+    latency.rb http://www.nginxpushstream.org --channel latency --pubdelay 1 --outfile output.txt
+    latency.rb http://www.nginxpushstream.org -p /pub -s /sub --pubdelay 0.3
+    latency.rb http://www.nginxpushstream.org --max 0.5
+
+Options:
+
+    -c, --channel       Channel.
+    -d, --pubdelay      Publisher delay (in seconds) between messages.
+    -o, --outfile       Output file (write the last latency timming to use in any external tool).
+    -p, --pub           Pub URI.
+    -s, --sub           Sub URI.
+    -m, --max           Max latency before alert.
+    -v, --verbose       Verbose mode.
+    -h, --help          Display this help message.
 </code>
 </pre>
