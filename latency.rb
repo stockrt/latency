@@ -59,34 +59,44 @@ def main(opts)
 end
 
 # Pub.
-def publisher(opts, domain, port)
+def publisher(opts, uri)
+  pub_uri = "#{opts[:pub]}?id=#{opts[:channel]}"
   buffer = ''
-  Net::HTTP.start(domain, port) do |http|
+  Net::HTTP.start(uri.host, uri.port) do |http|
     loop do
       send_timestamp = Time.now.strftime('%s.%L')
       message = "TS:#{send_timestamp}:"
-      http.request_post(URI.escape("#{opts[:pub]}?id=#{opts[:channel]}"), message) do |response|
-        puts response.read_body if opts[:verbose] > 0
+      puts "[Publisher] Sending: #{message}".light_yellow if opts[:verbose] > 0
+      puts "[Publisher] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{pub_uri}".light_yellow if opts[:verbose] > 2
+      http.request_post(URI.escape(pub_uri), message) do |response|
+        puts "[Publisher] Feedback: #{response.read_body}".light_yellow if opts[:verbose] > 1
       end
-      sleep opts[:pubdelay] unless opts[:pubdelay] == 0
+      unless opts[:pubdelay] == 0
+        puts "[Publisher] Sleeping #{opts[:pubdelay]} seconds".light_yellow if opts[:verbose] > 2
+        sleep opts[:pubdelay]
+      end
     end
   end
 end
 
 # Sub.
-def subscriber(opts, domain, port)
+def subscriber(opts, uri)
+  sub_uri = "#{opts[:sub]}/#{opts[:channel]}"
   buffer = ''
-  Net::HTTP.start(domain, port) do |http|
-    http.request_get(URI.escape("#{opts[:sub]}/#{opts[:channel]}")) do |response|
+  Net::HTTP.start(uri.host, uri.port) do |http|
+    puts "[Subscriber] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{sub_uri}".light_cyan if opts[:verbose] > 2
+    http.request_get(URI.escape(sub_uri)) do |response|
       response.read_body do |stream|
         recv_timestamp = Time.now.to_f
         buffer += stream
         # Compose line.
-        while line = buffer.slice!(/.+\r\n/)
-          puts line if opts[:verbose] > 1
+        while message = buffer.slice!(/.+\r\n/)
+          puts "[Subscriber] Received: #{message}".light_cyan if opts[:verbose] > 0
           # Parse sent timestamp.
-          match_data = /TS:(?<ts>\d+\.\d+):/.match(line)
+          match_data = /TS:(?<ts>\d+\.\d+):/.match(message)
           send_timestamp = match_data ? match_data[:ts].to_f : nil
+          puts "[Subscriber] Extracted timestamp: #{send_timestamp}".light_cyan if opts[:verbose] > 3
+          puts "[Subscriber] Timestamp now: #{recv_timestamp}".light_cyan if opts[:verbose] > 3
           unless send_timestamp.nil?
             latency = recv_timestamp - send_timestamp
             # Max latency.
@@ -96,7 +106,10 @@ def subscriber(opts, domain, port)
               puts "Latency: #{latency}".light_green
             end
             # Write outfile.
-            File.open(opts[:outfile], 'wt').write("#{latency}\n") if opts[:outfile]
+            if opts[:outfile]
+              puts "[Subscriber] Writing last timestamp to outfile: #{opts[:outfile]}".light_cyan if opts[:verbose] > 2
+              File.open(opts[:outfile], 'wt').write("#{latency}\n")
+            end
           end
         end
       end
