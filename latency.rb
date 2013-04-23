@@ -123,17 +123,18 @@ begin
     banner <<-EOS
 Usage:
 
-  latency.rb url [options]
+    latency.rb url [options]
 
 Examples:
 
-  latency.rb http://www.nginxpushstream.org --channel latency --pubdelay 1 --outfile output.txt
-  latency.rb http://www.nginxpushstream.org -p /pub -s /sub --pubdelay 0.3
-  latency.rb http://www.nginxpushstream.org --max 0.5
+    latency.rb http://www.nginxpushstream.org --channel latency --pubdelay 1 --outfile output.txt
+    latency.rb http://www.nginxpushstream.org -p /pub -s /sub --pubdelay 0.3
+    latency.rb http://www.nginxpushstream.org --max 0.5
+    latency.rb http://www.nginxpushstream.org -vvvv
 
 Options:
 EOS
-    on :c=, :channel=, 'Channel.', :default => 'latency'
+    on :c=, :channel=, 'Channel name.', :default => 'latency'
     on :d=, :pubdelay=, 'Publisher delay (in seconds) between messages.', :as => Float, :default => 1
     on :o=, :outfile=, 'Output file (write the last latency timming to use in any external tool).'
     on :p=, :pub=, 'Pub URI.', :default => '/pub'
