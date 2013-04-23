@@ -50,16 +50,12 @@ def main(opts)
   sleep 3
 
   # Pub.
-  Process.fork do
-    publisher(opts, uri.host, uri.port)
-  end
+  Process.fork { publisher(opts, uri) }
 
   # Sub.
-  Process.fork do
-    subscriber(opts, uri.host, uri.port)
-  end
+  Process.fork { subscriber(opts, uri) }
 
-  Process.wait
+  Process.waitall
 end
 
 # Pub.
@@ -142,5 +138,6 @@ begin
 rescue Interrupt
   puts
   puts 'Exiting.'
+  Process.waitall
   exit 0
 end
