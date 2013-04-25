@@ -136,7 +136,7 @@ Options:
 EOS
     on :c=, :channel=, 'Channel name.', :default => 'latency'
     on :d=, :pubdelay=, 'Publisher delay (in seconds) between messages.', :as => Float, :default => 1
-    on :o=, :outfile=, 'Output file (write the last latency measure to use in any external tool).'
+    on :o=, :outfile=, 'Output file (write the last latency value to use in any external tool).'
     on :p=, :pub=, 'Pub URI.', :default => '/pub'
     on :s=, :sub=, 'Sub URI.', :default => '/sub'
     on :m=, :max=, 'Max latency before alert.', :as => Float, :default => 0.5

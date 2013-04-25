@@ -29,7 +29,7 @@ Options:
 
     -c, --channel       Channel name.
     -d, --pubdelay      Publisher delay (in seconds) between messages.
-    -o, --outfile       Output file (write the last latency measure to use in any external tool).
+    -o, --outfile       Output file (write the last latency value to use in any external tool).
     -p, --pub           Pub URI.
     -s, --sub           Sub URI.
     -m, --max           Max latency before alert.
