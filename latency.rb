@@ -172,6 +172,5 @@ begin
 rescue Interrupt
   puts
   puts 'Exiting.'
-  Process.waitall
   exit 0
 end
