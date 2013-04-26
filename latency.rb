@@ -85,9 +85,18 @@ def publisher(opts, uri)
   pubdelay_plural = opts[:pubdelay] == 1 ? '' : 's'
   buffer = ''
   loop do
-    puts '[Publisher] Connecting...'.light_yellow if opts[:verbose] > 0
+    if flag_first_conn
+      puts '[Publisher] Connecting...'.light_yellow if opts[:verbose] > 0
+    else
+      puts '[Publisher] Reconnecting...'.light_yellow if opts[:verbose] > 0
+    end
     Net::HTTP.start(uri.host, uri.port) do |http|
-      puts '[Publisher] Connected.'.light_yellow
+      if flag_first_conn
+        flag_first_conn = false
+        puts '[Publisher] Connected.'.light_yellow
+      else
+        puts '[Publisher] Reconnected.'.light_yellow
+      end
       puts "[Publisher] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{pub_uri}".light_yellow if opts[:verbose] > 2
       loop do
         send_timestamp = Time.now.strftime('%s.%L')
@@ -110,11 +119,22 @@ end
 # Sub.
 def subscriber(opts, uri)
   sub_uri = "#{opts[:sub]}/#{opts[:channel]}"
+  flag_first_conn = true
+
   buffer = ''
   loop do
-    puts '[Subscriber] Connecting...'.light_cyan if opts[:verbose] > 0
+    if flag_first_conn
+      puts '[Subscriber] Connecting...'.light_cyan if opts[:verbose] > 0
+    else
+      puts '[Subscriber] Reconnecting...'.light_cyan if opts[:verbose] > 0
+    end
     Net::HTTP.start(uri.host, uri.port) do |http|
-      puts '[Subscriber] Connected.'.light_cyan
+      if flag_first_conn
+        flag_first_conn = false
+        puts '[Subscriber] Connected.'.light_cyan
+      else
+        puts '[Subscriber] Reconnected.'.light_cyan
+      end
       puts "[Subscriber] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{sub_uri}".light_cyan if opts[:verbose] > 2
       http.request_get(URI.escape(sub_uri)) do |response|
         response.read_body do |stream|
