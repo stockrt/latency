@@ -52,10 +52,28 @@ def main(opts)
   sleep 3
 
   # Pub.
-  Process.fork { publisher(opts, uri) }
+  Process.fork do
+    begin
+      publisher(opts, uri)
+    rescue Interrupt
+      puts
+      puts '[Publisher] Exiting.'.light_yellow
+      exit 0
+    end
+  end
+
+  sleep 0.1
 
   # Sub.
-  Process.fork { subscriber(opts, uri) }
+  Process.fork do
+    begin
+      subscriber(opts, uri)
+    rescue Interrupt
+      sleep 0.1
+      puts '[Subscriber] Exiting.'.light_cyan
+      exit 0
+    end
+  end
 
   Process.waitall
 end
@@ -63,31 +81,28 @@ end
 # Pub.
 def publisher(opts, uri)
   pub_uri = "#{opts[:pub]}?id=#{opts[:channel]}"
+  pubdelay_plural = opts[:pubdelay] == 1 ? '' : 's'
   buffer = ''
-  begin
-    loop do
-      puts "[Publisher] Connecting...".light_yellow if opts[:verbose] > 0
-      Net::HTTP.start(uri.host, uri.port) do |http|
-        puts "[Publisher] Connected.".light_yellow
-        puts "[Publisher] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{pub_uri}".light_yellow if opts[:verbose] > 2
-        loop do
-          send_timestamp = Time.now.strftime('%s.%L')
-          message = "TS:#{send_timestamp}:"
-          puts "[Publisher] Sending: #{message}".light_yellow if opts[:verbose] > 2
-          http.request_post(URI.escape(pub_uri), message) do |response|
-            puts "[Publisher] Feedback: #{response.read_body}".light_yellow if opts[:verbose] > 0
-          end
-          unless opts[:pubdelay] == 0
-            puts "[Publisher] Sleeping #{opts[:pubdelay]} seconds.".light_yellow if opts[:verbose] > 2
-            sleep opts[:pubdelay]
-          end
+  loop do
+    puts "[Publisher] Connecting...".light_yellow if opts[:verbose] > 0
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      puts "[Publisher] Connected.".light_yellow
+      puts "[Publisher] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{pub_uri}".light_yellow if opts[:verbose] > 2
+      loop do
+        send_timestamp = Time.now.strftime('%s.%L')
+        message = "TS:#{send_timestamp}:"
+        puts "[Publisher] Sending: #{message}".light_yellow if opts[:verbose] > 2
+        http.request_post(URI.escape(pub_uri), message) do |response|
+          puts "[Publisher] Feedback: #{response.read_body}".light_yellow if opts[:verbose] > 0
+        end
+        unless opts[:pubdelay] == 0
+          puts "[Publisher] Sleeping #{opts[:pubdelay]} second#{pubdelay_plural}.".light_yellow if opts[:verbose] > 2
+          sleep opts[:pubdelay]
         end
       end
-      puts "[Publisher] Disconnected.".light_yellow
-      sleep 1
     end
-  rescue Interrupt
-    exit 0
+    puts "[Publisher] Disconnected.".light_yellow
+    sleep 1
   end
 end
 
@@ -95,47 +110,43 @@ end
 def subscriber(opts, uri)
   sub_uri = "#{opts[:sub]}/#{opts[:channel]}"
   buffer = ''
-  begin
-    loop do
-      puts "[Subscriber] Connecting...".light_cyan if opts[:verbose] > 0
-      Net::HTTP.start(uri.host, uri.port) do |http|
-        puts "[Subscriber] Connected.".light_cyan
-        puts "[Subscriber] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{sub_uri}".light_cyan if opts[:verbose] > 2
-        http.request_get(URI.escape(sub_uri)) do |response|
-          response.read_body do |stream|
-            recv_timestamp = Time.now.to_f
-            buffer += stream
-            # Compose line.
-            while message = buffer.slice!(/.+\r\n/)
-              puts "[Subscriber] Received: #{message}".light_cyan if opts[:verbose] > 0
-              # Parse sent timestamp.
-              match_data = /TS:(?<ts>\d+\.\d+):/.match(message)
-              send_timestamp = match_data ? match_data[:ts].to_f : nil
-              puts "[Subscriber] Extracted timestamp: #{send_timestamp}".light_cyan if opts[:verbose] > 3
-              puts "[Subscriber] Timestamp now: #{recv_timestamp}".light_cyan if opts[:verbose] > 3
-              unless send_timestamp.nil?
-                latency = recv_timestamp - send_timestamp
-                # Max latency.
-                if latency > opts[:max]
-                  puts "Latency: #{latency}".light_red
-                else
-                  puts "Latency: #{latency}".light_green
-                end
-                # Write outfile.
-                if opts.outfile?
-                  puts "[Subscriber] Writing last latency value to outfile: #{opts[:outfile]}".light_cyan if opts[:verbose] > 2
-                  File.open(opts[:outfile], 'wb').write("#{latency}\n")
-                end
+  loop do
+    puts "[Subscriber] Connecting...".light_cyan if opts[:verbose] > 0
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      puts "[Subscriber] Connected.".light_cyan
+      puts "[Subscriber] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{sub_uri}".light_cyan if opts[:verbose] > 2
+      http.request_get(URI.escape(sub_uri)) do |response|
+        response.read_body do |stream|
+          recv_timestamp = Time.now.to_f
+          buffer += stream
+          # Compose line.
+          while message = buffer.slice!(/.+\r\n/)
+            puts "[Subscriber] Received: #{message}".light_cyan if opts[:verbose] > 0
+            # Parse sent timestamp.
+            match_data = /TS:(?<ts>\d+\.\d+):/.match(message)
+            send_timestamp = match_data ? match_data[:ts].to_f : nil
+            puts "[Subscriber] Extracted timestamp: #{send_timestamp}".light_cyan if opts[:verbose] > 3
+            puts "[Subscriber] Timestamp now: #{recv_timestamp}".light_cyan if opts[:verbose] > 3
+            unless send_timestamp.nil?
+              latency = recv_timestamp - send_timestamp
+              # Max latency.
+              if latency > opts[:max]
+                puts "Latency: #{latency}".light_red
+              else
+                puts "Latency: #{latency}".light_green
+              end
+              # Write outfile.
+              if opts.outfile?
+                puts "[Subscriber] Writing last latency value to outfile: #{opts[:outfile]}".light_cyan if opts[:verbose] > 2
+                File.open(opts[:outfile], 'wb').write("#{latency}\n")
               end
             end
           end
         end
       end
-      puts "[Subscriber] Disconnected.".light_cyan
-      sleep 1
     end
-  rescue Interrupt
-    exit 0
+    puts "[Subscriber] Disconnected.".light_cyan
+    sleep 1
   end
 end
 
@@ -172,6 +183,7 @@ end
 begin
   main(opts)
 rescue Interrupt
+  Process.waitall
   puts
   puts 'Exiting.'
   exit 0
