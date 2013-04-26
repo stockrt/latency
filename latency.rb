@@ -49,6 +49,7 @@ def main(opts)
   Max latency:  #{opts[:max]} second#{maxlatency_plural}
   Verbosity:    #{opts[:verbose]}
 ".light_cyan
+
   sleep 1
 
   # Pub.
@@ -84,9 +85,9 @@ def publisher(opts, uri)
   pubdelay_plural = opts[:pubdelay] == 1 ? '' : 's'
   buffer = ''
   loop do
-    puts "[Publisher] Connecting...".light_yellow if opts[:verbose] > 0
+    puts '[Publisher] Connecting...'.light_yellow if opts[:verbose] > 0
     Net::HTTP.start(uri.host, uri.port) do |http|
-      puts "[Publisher] Connected.".light_yellow
+      puts '[Publisher] Connected.'.light_yellow
       puts "[Publisher] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{pub_uri}".light_yellow if opts[:verbose] > 2
       loop do
         send_timestamp = Time.now.strftime('%s.%L')
@@ -101,7 +102,7 @@ def publisher(opts, uri)
         end
       end
     end
-    puts "[Publisher] Disconnected.".light_yellow
+    puts '[Publisher] Disconnected.'.light_yellow
     sleep 1
   end
 end
@@ -111,9 +112,9 @@ def subscriber(opts, uri)
   sub_uri = "#{opts[:sub]}/#{opts[:channel]}"
   buffer = ''
   loop do
-    puts "[Subscriber] Connecting...".light_cyan if opts[:verbose] > 0
+    puts '[Subscriber] Connecting...'.light_cyan if opts[:verbose] > 0
     Net::HTTP.start(uri.host, uri.port) do |http|
-      puts "[Subscriber] Connected.".light_cyan
+      puts '[Subscriber] Connected.'.light_cyan
       puts "[Subscriber] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{sub_uri}".light_cyan if opts[:verbose] > 2
       http.request_get(URI.escape(sub_uri)) do |response|
         response.read_body do |stream|
@@ -145,7 +146,7 @@ def subscriber(opts, uri)
         end
       end
     end
-    puts "[Subscriber] Disconnected.".light_cyan
+    puts '[Subscriber] Disconnected.'.light_cyan
     sleep 1
   end
 end
