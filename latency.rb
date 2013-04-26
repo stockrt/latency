@@ -35,16 +35,18 @@ def main(opts)
   uri = URI(url)
 
   # Splash.
+  pubdelay_plural = opts[:pubdelay] == 1 ? '' : 's'
+  maxlatency_plural = opts[:max] == 1 ? '' : 's'
   puts "
   URL:          #{url}
   Host:         #{uri.host}
   Port:         #{uri.port}
   Channel:      #{opts[:channel]}
-  Pubdelay:     #{opts[:pubdelay]} seconds
+  Pubdelay:     #{opts[:pubdelay]} second#{pubdelay_plural}
   Outfile:      #{opts[:outfile]}
   Pub URI:      #{opts[:pub]}
   Sub URI:      #{opts[:sub]}
-  Max latency:  #{opts[:max]} seconds
+  Max latency:  #{opts[:max]} second#{maxlatency_plural}
   Verbosity:    #{opts[:verbose]}
 ".light_cyan
   sleep 3
