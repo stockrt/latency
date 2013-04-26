@@ -49,7 +49,7 @@ def main(opts)
   Max latency:  #{opts[:max]} second#{maxlatency_plural}
   Verbosity:    #{opts[:verbose]}
 ".light_cyan
-  sleep 3
+  sleep 1
 
   # Pub.
   Process.fork do
