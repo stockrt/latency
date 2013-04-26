@@ -61,10 +61,19 @@ def main(opts)
 
   sleep 1
 
+  # Stats Server.
   Process.fork do
-    # The object that handles requests on the server.
-    DRb.start_service(DRB_URL, Stats.new)
-    DRb.thread.join
+    begin
+      stats = Stats.new
+      DRb.start_service(DRB_URL, stats)
+      DRb.thread.join
+    rescue Interrupt
+      puts
+      puts
+      puts "Published messages: #{stats.published}".light_cyan
+      puts "Received messages: #{stats.received}".light_cyan
+      puts
+    end
   end
 
   # Pub.
@@ -72,21 +81,15 @@ def main(opts)
     begin
       publisher(opts, uri)
     rescue Interrupt
-      puts
-      puts '[Publisher] Exiting.'.light_yellow
       exit 0
     end
   end
-
-  sleep 0.1
 
   # Sub.
   Process.fork do
     begin
       subscriber(opts, uri)
     rescue Interrupt
-      sleep 0.1
-      puts '[Subscriber] Exiting.'.light_cyan
       exit 0
     end
   end
@@ -96,6 +99,7 @@ end
 
 # Pub.
 def publisher(opts, uri)
+  stats = DRbObject.new_with_uri(DRB_URL)
   pub_uri = "#{opts[:pub]}?id=#{opts[:channel]}"
   pubdelay_plural = opts[:pubdelay] == 1 ? '' : 's'
   flag_first_conn = true
@@ -134,6 +138,7 @@ def publisher(opts, uri)
         message = "TS:#{send_timestamp}:"
         puts "[Publisher] Sending: #{message}".light_yellow if opts[:verbose] > 2
         http.request_post(URI.escape(pub_uri), message) do |response|
+          stats.published += 1
           puts "[Publisher] Feedback: #{response.read_body}".light_yellow if opts[:verbose] > 0
         end
         unless opts[:pubdelay] == 0
@@ -149,6 +154,7 @@ end
 
 # Sub.
 def subscriber(opts, uri)
+  stats = DRbObject.new_with_uri(DRB_URL)
   sub_uri = "#{opts[:sub]}/#{opts[:channel]}"
   flag_first_conn = true
 
@@ -180,6 +186,7 @@ def subscriber(opts, uri)
             puts "[Subscriber] Extracted timestamp: #{send_timestamp}".light_cyan if opts[:verbose] > 3
             puts "[Subscriber] Timestamp now: #{recv_timestamp}".light_cyan if opts[:verbose] > 3
             unless send_timestamp.nil?
+              stats.received += 1
               latency = recv_timestamp - send_timestamp
               # Max latency.
               if latency > opts[:max]
@@ -236,7 +243,6 @@ begin
   main(opts)
 rescue Interrupt
   Process.waitall
-  puts
   puts 'Exiting.'
   exit 0
 end
