@@ -5,6 +5,13 @@
 #
 # Rogério Carvalho Schneider <stockrt@gmail.com>
 
+#############
+## DEFINES ##
+#############
+
+# Distributed Ruby Objects.
+DRB_URL = 'druby://localhost:8787'
+
 ##############
 ## REQUIRES ##
 ##############
@@ -13,6 +20,8 @@ require 'slop'
 require 'colorize'
 require 'net/http'
 require 'uri'
+require 'drb/drb'
+require_relative 'lib/stats'
 
 ##########
 ## MAIN ##
@@ -51,6 +60,12 @@ def main(opts)
 ".light_cyan
 
   sleep 1
+
+  Process.fork do
+    # The object that handles requests on the server.
+    DRb.start_service(DRB_URL, Stats.new)
+    DRb.thread.join
+  end
 
   # Pub.
   Process.fork do
