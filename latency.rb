@@ -83,6 +83,22 @@ end
 def publisher(opts, uri)
   pub_uri = "#{opts[:pub]}?id=#{opts[:channel]}"
   pubdelay_plural = opts[:pubdelay] == 1 ? '' : 's'
+  flag_first_conn = true
+
+  # First request.
+  puts '[Publisher] Connecting...'.light_yellow if opts[:verbose] > 0
+  Net::HTTP.start(uri.host, uri.port) do |http|
+    puts '[Publisher] Connected.'.light_yellow
+    puts "[Publisher] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{pub_uri}".light_yellow if opts[:verbose] > 2
+    message = "OPEN"
+    puts "[Publisher] Sending: #{message}".light_yellow if opts[:verbose] > 2
+    puts '[Publisher] First post.'.light_yellow
+    http.request_post(URI.escape(pub_uri), message) do |response|
+      puts "[Publisher] Feedback: #{response.read_body}".light_yellow if opts[:verbose] > 0
+    end
+  end
+  puts '[Publisher] Disconnected.'.light_yellow
+
   buffer = ''
   loop do
     if flag_first_conn
