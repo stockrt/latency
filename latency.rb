@@ -107,16 +107,16 @@ def publisher(opts, uri)
   # First request.
   puts '[Publisher] Connecting...'.light_yellow if opts[:verbose] > 0
   Net::HTTP.start(uri.host, uri.port) do |http|
-    puts '[Publisher] Connected.'.light_yellow
+    puts '[Publisher] Connected'.light_yellow
     puts "[Publisher] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{pub_uri}".light_yellow if opts[:verbose] > 2
     message = 'OPEN_CHANNEL'
     puts "[Publisher] Sending: #{message}".light_yellow if opts[:verbose] > 2
-    puts '[Publisher] First post.'.light_yellow
+    puts '[Publisher] First post'.light_yellow
     http.request_post(URI.escape(pub_uri), message) do |response|
       puts "[Publisher] Feedback: #{response.read_body}".light_yellow if opts[:verbose] > 0
     end
   end
-  puts '[Publisher] Disconnected.'.light_yellow
+  puts '[Publisher] Disconnected'.light_yellow
 
   buffer = ''
   loop do
@@ -128,9 +128,9 @@ def publisher(opts, uri)
     Net::HTTP.start(uri.host, uri.port) do |http|
       if flag_first_conn
         flag_first_conn = false
-        puts '[Publisher] Connected.'.light_yellow
+        puts '[Publisher] Connected'.light_yellow
       else
-        puts '[Publisher] Reconnected.'.light_yellow
+        puts '[Publisher] Reconnected'.light_yellow
       end
       puts "[Publisher] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{pub_uri}".light_yellow if opts[:verbose] > 2
       loop do
@@ -142,12 +142,12 @@ def publisher(opts, uri)
           puts "[Publisher] Feedback: #{response.read_body}".light_yellow if opts[:verbose] > 0
         end
         unless opts[:pubdelay] == 0
-          puts "[Publisher] Sleeping #{opts[:pubdelay]} second#{pubdelay_plural}.".light_yellow if opts[:verbose] > 2
+          puts "[Publisher] Sleeping #{opts[:pubdelay]} second#{pubdelay_plural}".light_yellow if opts[:verbose] > 2
           sleep opts[:pubdelay]
         end
       end
     end
-    puts '[Publisher] Disconnected.'.light_yellow
+    puts '[Publisher] Disconnected'.light_yellow
     sleep 1
   end
 end
@@ -168,9 +168,9 @@ def subscriber(opts, uri)
     Net::HTTP.start(uri.host, uri.port) do |http|
       if flag_first_conn
         flag_first_conn = false
-        puts '[Subscriber] Connected.'.light_cyan
+        puts '[Subscriber] Connected'.light_cyan
       else
-        puts '[Subscriber] Reconnected.'.light_cyan
+        puts '[Subscriber] Reconnected'.light_cyan
       end
       puts "[Subscriber] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{sub_uri}".light_cyan if opts[:verbose] > 2
       http.request_get(URI.escape(sub_uri)) do |response|
@@ -204,7 +204,7 @@ def subscriber(opts, uri)
         end
       end
     end
-    puts '[Subscriber] Disconnected.'.light_cyan
+    puts '[Subscriber] Disconnected'.light_cyan
     sleep 1
   end
 end
