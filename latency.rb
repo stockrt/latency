@@ -196,8 +196,10 @@ def subscriber(opts, uri)
               end
               # Write outfile.
               if opts.outfile?
-                puts "[Subscriber] Writing last latency value to outfile: #{opts[:outfile]}".light_cyan if opts[:verbose] > 2
-                File.open(opts[:outfile], 'wb').write("#{latency}\n")
+                puts "[Subscriber] Appending latency value to outfile: #{opts[:outfile]}".light_cyan if opts[:verbose] > 2
+                outfile_handler = File.open(opts[:outfile], 'ab')
+                outfile_handler.write("#{latency}\n")
+                outfile_handler.close
               end
             end
           end
