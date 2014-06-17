@@ -109,7 +109,7 @@ def publisher(opts, uri)
   Net::HTTP.start(uri.host, uri.port) do |http|
     puts '[Publisher] Connected.'.light_yellow
     puts "[Publisher] URL: #{uri.scheme}://#{uri.host}:#{uri.port}#{pub_uri}".light_yellow if opts[:verbose] > 2
-    message = 'OPEN CHANNEL'
+    message = 'OPEN_CHANNEL'
     puts "[Publisher] Sending: #{message}".light_yellow if opts[:verbose] > 2
     puts '[Publisher] First post.'.light_yellow
     http.request_post(URI.escape(pub_uri), message) do |response|
