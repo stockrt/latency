@@ -243,6 +243,6 @@ begin
   main(opts)
 rescue Interrupt
   Process.waitall
-  puts 'Exiting.'
+  puts 'Exiting'.light_cyan
   exit 0
 end
